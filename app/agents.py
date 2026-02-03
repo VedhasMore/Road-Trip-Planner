@@ -11,7 +11,27 @@ load_dotenv()
 
 # Configuration
 LLM_MODEL = "llama-3.3-70b-versatile"
-LLM_API_KEY = os.environ.get("GROQ_API_KEY")
+
+def get_api_key():
+    # 1. Try environment variable (Local / Streamlit Cloud default)
+    api_key = os.environ.get("GROQ_API_KEY")
+    
+    # 2. Try Streamlit Secrets (Explicitly for Streamlit Cloud)
+    if not api_key:
+        try:
+            import streamlit as st
+            api_key = st.secrets.get("GROQ_API_KEY")
+        except Exception:
+            pass
+            
+    if not api_key:
+        raise ValueError(
+            "GROQ_API_KEY not found. Please set it in your .env file (local) "
+            "or in Streamlit Cloud Secrets (deployment)."
+        )
+    return api_key
+
+LLM_API_KEY = get_api_key()
 
 # Initialize LLM
 llm = ChatGroq(model=LLM_MODEL, api_key=LLM_API_KEY)
